@@ -47,10 +47,11 @@ def get_request(url, api_key=None, **kwargs):
     status_code = response.status_code
     print("With status {} ".format(status_code))
     json_data = json.loads(response.text)
+    print(response.text)
     return json_data
 
 def post_request(url, json_payload, **kwargs):
-    print(kwargs)
+    print(json_payload)
     print("POST from {} ".format(url))
     try:
          # Call get method of requests library with URL and parameters
@@ -117,4 +118,18 @@ def analyze_review_sentiments(text):
     
     
     return(label)
+
+def get_dealer_by_id_from_cf(url, id):
+    json_result = get_request(url,id=id)
+    
+    if json_result:
+        dealers = json_result["result"]
+        
+    
+        dealer_doc = dealers[0]
+        dealer_obj = CarDealer(address=dealer_doc["address"], city=dealer_doc["city"], full_name=dealer_doc["full_name"], id=dealer_doc["id"], lat=dealer_doc["lat"], long=dealer_doc["long"],                            
+                                st=dealer_doc["st"], zip=dealer_doc["zip"],short_name=dealer_doc["short_name"])
+    return dealer_obj
+
+
 
