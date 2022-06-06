@@ -2,7 +2,9 @@ import requests
 import json
 from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
-
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_watson.natural_language_understanding_v1 import Features,SentimentOptions
 
 # Create a `get_request` to make HTTP GET requests
 # e.g., response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
@@ -47,6 +49,21 @@ def get_request(url, api_key=None, **kwargs):
     json_data = json.loads(response.text)
     return json_data
 
+def post_request(url, json_payload, **kwargs):
+    print(kwargs)
+    print("POST from {} ".format(url))
+    try:
+         # Call get method of requests library with URL and parameters
+        response = requests.post(url, headers={'Content-Type': 'application/json'}, params=kwargs, json=json_payload)
+    except:
+        # If any error occurs
+        print("Network exception occurred")
+    status_code = response.status_code
+    print("With status {} ".format(status_code))
+    json_data = json.loads(response.text)
+    return json_data
+
+
 
 def get_dealers_from_cf(url, **kwargs):
     results = []
@@ -88,13 +105,16 @@ def get_dealers_reviews_from_cf(url, dealer_id):
     return results
 
 
-def analyze_review_sentiments(dealerreview):
-    params = dict()
-    params["text"] = dealerreview 
+def analyze_review_sentiments(text):
     api_key = "sKwP5ODW41ENIqhxMcnGEmQgMmJwTBdqZojeJjzXGjnV"
     url = "https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/2b22e0ee-634d-4ee4-b127-f70dcc6a3295"
-    params["version"] = "2022-04-07" 
-    params["features"] = "sentiment"
-    response = get_request(url, params=params, headers={'Content-Type': 'application/json'}, api_key=api_key)
-    print(response)
-    return 2
+    authenticator = IAMAuthenticator(api_key)
+    natural_language_understanding = NaturalLanguageUnderstandingV1(version='2021-08-01',authenticator=authenticator)
+    natural_language_understanding.set_service_url(url)
+    response = natural_language_understanding.analyze( text=text+"hello hello hello",features=Features(sentiment=SentimentOptions(targets=[text+"hello hello hello"]))).get_result()
+    label=json.dumps(response, indent=2)
+    label = response['sentiment']['document']['label']
+    
+    
+    return(label)
+
